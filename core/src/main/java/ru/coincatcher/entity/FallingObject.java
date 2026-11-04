@@ -1,11 +1,9 @@
 package ru.coincatcher.entity;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 
 
@@ -21,7 +19,7 @@ public class FallingObject {
     private float rotation = 0f;
 
     public FallingObject(float x, Type type, float speed,
-                         Animation<TextureRegion> coinAnimation,Texture meteorTexture ) {
+                         Animation<TextureRegion> coinAnimation, Texture meteorTexture ) {
         this.type = type;
         this.speed = speed;
         this.coinAnimation = coinAnimation;
