@@ -2,13 +2,14 @@ package ru.coincatcher;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import ru.coincatcher.assets.GameAssets;
+import ru.coincatcher.audio.AudioManager;
+import ru.coincatcher.config.GameSettings;
 import ru.coincatcher.screen.GameOverScreen;
 import ru.coincatcher.screen.GameScreen;
 import ru.coincatcher.screen.MenuScreen;
@@ -20,14 +21,16 @@ import ru.coincatcher.screen.SettingsScreen;
 public class Main extends Game {
 
     public GameAssets assets;
-    private Preferences preferences;
+    public GameSettings settings;
+    public AudioManager audio;
 
     @Override
     public void create() {
         assets = new GameAssets();
-        preferences = Gdx.app.getPreferences("CoinCatcher");
+        settings = new GameSettings();
+        audio = new AudioManager(assets, settings);
 
-        Gdx.graphics.setVSync(isVSyncEnabled());
+        Gdx.graphics.setVSync(settings.isVSyncEnabled());
         showMenu();
     }
 
@@ -57,24 +60,20 @@ public class Main extends Game {
     }
 
     public boolean isVSyncEnabled() {
-        return preferences.getBoolean("vsync", true);
+        return settings.isVSyncEnabled();
     }
 
     public void setVSyncEnabled(boolean enabled) {
-        preferences.putBoolean("vsync", enabled);
-        preferences.flush();
-        Gdx.graphics.setVSync(enabled);
+        settings.setVSyncEnabled(enabled);
     }
 
     public float getVolume() {
-        return preferences.getFloat("volume", 1f);
+        return settings.getVolume();
     }
 
     public void setVolume(float volume) {
-        volume = Math.max(0f, Math.min(1f, volume));
-        preferences.putFloat("volume", volume);
-        preferences.flush();
-
+        settings.setVolume(volume);
+        audio.updateVolume();
     }
 
     public TextButton createButton(String text) {
@@ -97,6 +96,8 @@ public class Main extends Game {
         if (getScreen() != null) {
             getScreen().dispose();
         }
+        audio.dispose();
         assets.dispose();
+        super.dispose();
     }
 }

@@ -8,6 +8,12 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -29,6 +35,9 @@ public class GameScreen extends ScreenAdapter {
     private Player player;
     private Array<FallingObject> objects = new Array<>();
 
+    private boolean paused = false;
+    private Stage pauseStage;
+
     private float spawnTimer = 0f;
     private int score = 0;
     private int lives = 3;
@@ -44,11 +53,13 @@ public class GameScreen extends ScreenAdapter {
         batch = new SpriteBatch();
 
         player = new Player(game.assets.getTexture(GameAssets.PLAYER));
+
+        createPauseUI();
     }
 
     @Override
     public void show() {
-        Gdx.input.setInputProcessor(null);
+        setPaused(false);
     }
 
     @Override
@@ -56,16 +67,16 @@ public class GameScreen extends ScreenAdapter {
         delta = Math.min(delta, 1f / 30f);
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.showMenu();
-            return;
+            setPaused(!paused);
         }
 
-        if (!gameOver) {
+        if (!paused && !gameOver) {
             update(delta);
         }
 
         if (gameOver) {
             game.showGameOver(score);
+            game.audio.pauseMusic();
             return;
         }
 
@@ -94,6 +105,12 @@ public class GameScreen extends ScreenAdapter {
         game.assets.font.draw(batch, "Lives: " + lives, 650, 570);
 
         batch.end();
+
+        if (paused) {
+            pauseStage.getViewport().apply();
+            pauseStage.act(delta);
+            pauseStage.draw();
+        }
     }
 
     public void update(float delta) {
@@ -112,8 +129,11 @@ public class GameScreen extends ScreenAdapter {
             if (player.getBounds().overlaps(object.getBounds())) {
                 if (object.getType() == Type.COINS) {
                     score += 10;
+                    game.audio.playCoin();
                 } else {
                     lives--;
+                    game.audio.playHit();
+
                     if (lives <= 0) {
                         gameOver = true;
                     }
@@ -145,13 +165,70 @@ public class GameScreen extends ScreenAdapter {
             game.assets.getTexture(GameAssets.METEOR)));
     }
 
+    private void createPauseUI() {
+        pauseStage = new Stage(new FitViewport(WIDTH, HEIGHT));
+
+        Table table = new Table();
+        table.setFillParent(true);
+        pauseStage.addActor(table);
+
+        Label title = new Label(
+            "PAUSED",
+            new Label.LabelStyle(
+                game.assets.font,
+                Color.WHITE
+            )
+        );
+
+        TextButton resume = game.createButton("RESUME");
+        TextButton menu = game.createButton("MAIN MENU");
+
+        table.add(title).padBottom(40).row();
+        table.add(resume).width(280).height(60).pad(10).row();
+        table.add(menu).width(280).height(60).pad(10).row();
+
+        resume.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                setPaused(false);
+            }
+        });
+
+        menu.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Gdx.app.postRunnable(game::showMenu);
+            }
+        });
+    }
+
+    private void setPaused(boolean value) {
+        paused = value;
+        if (paused) {
+            Gdx.input.setInputProcessor(pauseStage);
+            game.audio.pauseMusic();
+        } else {
+            Gdx.input.setInputProcessor(null);
+            game.audio.startMusic();
+        }
+    }
+
+    @Override
+    public void hide() {
+        if (Gdx.input.getInputProcessor() == pauseStage) {
+            Gdx.input.setInputProcessor(null);
+        }
+    }
+
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
+        pauseStage.getViewport().update(width, height, true);
     }
 
     @Override
     public void dispose() {
         batch.dispose();
+        pauseStage.dispose();
     }
 }

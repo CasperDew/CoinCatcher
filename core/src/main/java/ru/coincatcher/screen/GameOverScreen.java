@@ -11,7 +11,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import org.w3c.dom.Text;
 import ru.coincatcher.Main;
 
 public class GameOverScreen extends ScreenAdapter {
@@ -20,23 +19,37 @@ public class GameOverScreen extends ScreenAdapter {
 
     public GameOverScreen(Main game, int score) {
         this.game = game;
+
+        boolean newRecord = game.settings.updateHighScore(score);
+        int highScore = game.settings.getHighScore();
+
         stage = new Stage(new FitViewport(800, 600));
 
         Label.LabelStyle labelStyle =
             new Label.LabelStyle(game.assets.font, Color.WHITE);
+        Label.LabelStyle labelStyleGameOver =
+            new Label.LabelStyle(game.assets.font, Color.RED);
+        Label.LabelStyle labelStyleRecord =
+            new Label.LabelStyle(game.assets.font, Color.YELLOW);
 
         Table table = new Table();
         table.setFillParent(true);
         stage.addActor(table);
 
-        Label title = new Label("GAME OVER", labelStyle);
+        Label title = new Label("GAME OVER", labelStyleGameOver);
         Label result = new Label("Score: " + score, labelStyle);
+
+        Label record = new Label(
+            "Best: " + highScore,
+            labelStyleRecord
+        );
 
         TextButton restart = game.createButton("RESTART");
         TextButton menu = game.createButton("MAIN MENU");
 
         table.add(title).padBottom(30).row();
         table.add(result).padBottom(50).row();
+        table.add(record).padBottom(50).row();
         table.add(restart).width(280).height(60).pad(10).row();
         table.add(menu).width(280).height(60).pad(10).row();
 
