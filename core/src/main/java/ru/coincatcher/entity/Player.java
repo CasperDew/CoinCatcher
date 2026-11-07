@@ -2,10 +2,8 @@ package ru.coincatcher.entity;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 
@@ -26,10 +24,16 @@ public class Player {
         float direction = 0f;
 
         if (Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+            if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)) {
+                direction -= 1.3f;
+            }
             direction -= 1f;
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+            if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)) {
+                direction += 1.3f;
+            }
             direction += 1f;
         }
 
@@ -37,7 +41,7 @@ public class Player {
         bounds.x = MathUtils.clamp(bounds.x, 0, 800 - bounds.width);
 
         // Наклон корабля
-        float targetRotation = - direction * 15f;
+        float targetRotation = -direction * 15f;
         rotation = MathUtils.lerp(rotation, targetRotation, Math.min(1f, 10f * delta));
     }
 
